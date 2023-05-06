@@ -1,7 +1,7 @@
 """ANN-based UTA model.
 
-This code has beem provided by the course instructors. Only minor naming
-changes have been made to make it consistent with the rest of the code. MIT License does not
+This code has beem provided by the lab instructor Krzysztof Martyn. Only minor naming
+changes have been made to make it consistent with the rest of the code. MIT License may not
 apply to this file.
 """
 import torch
