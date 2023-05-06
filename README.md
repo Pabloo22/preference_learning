@@ -8,4 +8,4 @@
 ```bash
 make create_profiling
 ```
-It will create a file `diabetes_profiling.html` in the `reports` folder (if it does not exist, it will be created).
+It will create a file `car_evaluation_profiling.html` in the `reports` folder (if it does not exist, it will be created).

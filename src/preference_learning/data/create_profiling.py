@@ -12,7 +12,7 @@ def create_profiling(df: pd.DataFrame, output_path: pathlib.Path):
         df (pd.DataFrame): Dataframe to create profiling for.
         output_path (pathlib.Path): Path to save the profiling report.
     """
-    profile = ProfileReport(df, title="Diabetes Profiling Report")
+    profile = ProfileReport(df, title="Car Evaluation Profiling Report")
     profile.to_file(output_file=output_path)
 
 
@@ -22,9 +22,9 @@ def main():
 
     # Create folder if it doesn't exist
     os.makedirs(project_path / "reports", exist_ok=True)
-    output_path = project_path / "reports" / "diabetes_profiling.html"
+    output_path = project_path / "reports" / "car_evaluation_profiling.html"
 
-    data_path = project_path / "data" / "diabetes.csv"
+    data_path = project_path / "data" / "car_evaluation_raw.csv"
     df = pd.read_csv(data_path)
 
     create_profiling(df, output_path)
