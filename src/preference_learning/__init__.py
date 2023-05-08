@@ -1,4 +1,3 @@
-from .load_data import load_dataframe
 from .helpers import (
     NumpyDataset,
     regret,
@@ -8,7 +7,10 @@ from .helpers import (
     train,
     Hook,
     append_output,
+    evaluate_model,
+    set_seed
 )
+from .load_data import load_dataframe
 from .ann_uta import (
     SumLayer,
     CriterionLayerSpread,
