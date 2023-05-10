@@ -3,13 +3,15 @@ from sklearn.model_selection import train_test_split
 import dotenv
 import pathlib
 import os
+import functools
 
 from preference_learning import (load_dataframe,
                                  create_data_loader,
                                  Uta,
                                  NormLayer,
                                  train,
-                                 set_seed)
+                                 set_seed,
+                                 accuracy)
 
 dotenv.load_dotenv()
 MODEL_FILENAME = "ann_utadis.pt"
@@ -46,6 +48,7 @@ def main(trial):
     uta = Uta(criteria_nr=CRITERIA_NR, hidden_nr=HIDDEN_NR)
     model = NormLayer(uta, CRITERIA_NR)
 
+    acc_fn = functools.partial(accuracy, threshold=0)
     # Train Model
     best_acc, acc_test, best_auc, auc_test = train(
         train_dataloader=train_dataloader,
@@ -54,11 +57,12 @@ def main(trial):
         path=MODEL_PATH,
         lr=LEARNING_RATE,
         epoch_nr=EPOCHS,
+        accuracy_fn=acc_fn,
         save_model=False,
     )
 
     # Return the metric to be optimized (e.g., validation accuracy or loss)
-    return best_acc
+    return acc_test
 
 
 if __name__ == "__main__":

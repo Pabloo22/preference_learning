@@ -10,7 +10,7 @@ from .helpers import (
     evaluate_model,
     set_seed
 )
-from .load_data import load_dataframe
+from .load_data import load_dataframe, load_dataset
 from .ann_uta import (
     SumLayer,
     CriterionLayerSpread,
@@ -18,4 +18,5 @@ from .ann_uta import (
     LeakyHardSigmoid,
     Uta,
     ThresholdLayer,
+    NormLayer
 )

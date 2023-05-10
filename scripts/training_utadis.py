@@ -3,6 +3,7 @@ import dotenv
 import pathlib
 import os
 import torch
+import functools
 
 from preference_learning import (load_dataframe,
                                  create_data_loader,
@@ -10,7 +11,8 @@ from preference_learning import (load_dataframe,
                                  NormLayer,
                                  train,
                                  evaluate_model,
-                                 set_seed)
+                                 set_seed,
+                                 accuracy)
 
 dotenv.load_dotenv()
 MODEL_FILENAME = "ann_utadis.pt"
@@ -48,6 +50,7 @@ def main():
     uta = Uta(criteria_nr=CRITERIA_NR, hidden_nr=HIDDEN_NR)
     model = NormLayer(uta, CRITERIA_NR)
 
+    acc_fn = functools.partial(accuracy, threshold=0)
     # Train Model
     best_acc, acc_test, best_auc, auc_test = train(
         train_dataloader=train_dataloader,
@@ -56,6 +59,7 @@ def main():
         path=MODEL_PATH,
         lr=LEARNING_RATE,
         epoch_nr=EPOCHS,
+        accuracy_fn=acc_fn,
     )
     # Print results
     print(f"Train accuracy: {best_acc:.4f}")

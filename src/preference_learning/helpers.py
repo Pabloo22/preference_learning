@@ -80,7 +80,7 @@ def train(model: torch.nn.Module,
           epoch_nr: int = 200,
           loss_fn: Callable = regret,
           accuracy_fn: Callable = accuracy,
-          seed: int = 42
+          save_model: bool = True
           ) -> Tuple[float, float, float, float]:
     """Trains a model and saves the best model to a file.
 
@@ -108,23 +108,23 @@ def train(model: torch.nn.Module,
         if acc_test > best_acc:
             best_acc = acc_test
             best_auc = auc_test
-
-            torch.save(
-                {
-                    "epoch": epoch,
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "loss_train": loss_train,
-                    "loss_test": loss_test,
-                    "accuracy_train": acc_train,
-                    "accuracy_test": acc_test,
-                    "auc_train": auc_train,
-                    "auc_test": auc_test,
-                },
-                path,
-            )
-            print("Saved model to", path)
-            print("Epoch: ", epoch)
+            if save_model:
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "loss_train": loss_train,
+                        "loss_test": loss_test,
+                        "accuracy_train": acc_train,
+                        "accuracy_test": acc_test,
+                        "auc_train": auc_train,
+                        "auc_test": auc_test,
+                    },
+                    path,
+                )
+                print("Saved model to", path)
+                print("Epoch: ", epoch)
 
     return best_acc, acc_test, best_auc, auc_test
 
@@ -133,6 +133,7 @@ def evaluate_model(model: torch.nn.Module,
                    dataloader: DataLoader,
                    loss_fn: Callable = regret,
                    accuracy_fn: Callable = accuracy) -> Tuple[float, float, float]:
+    """Returns loss, accuracy and AUC for a given model and data loader."""
     model.eval()  # Set the model to evaluation mode
     total_loss = 0.0
     total_acc = 0.0
