@@ -47,11 +47,11 @@ def main():
         loss_fn=loss_fn,
     )
 
-    print(f"Train accuracy: {best_acc}")
-    print(f"Train AUC: {best_auc}")
+    print(f"Train accuracy: {best_acc:.4f}")
+    print(f"Train AUC: {best_auc:.4f}")
     print("-" * 50)
-    print(f"Validation accuracy: {acc_test}")
-    print(f"Validation AUC: {auc_test}")
+    print(f"Validation accuracy: {acc_test:.4f}")
+    print(f"Validation AUC: {auc_test:.4f}")
 
     # Load the saved model's state_dict
     saved_model = torch.load(path)
@@ -70,8 +70,8 @@ def main():
     # Evaluate on test set
     loss_test, acc_test, auc_test = evaluate_model(loaded_model, test_dataloader, loss_fn)
     print("-" * 50)
-    print(f"Accuracy on test set: {acc_test}")
-    print(f"AUC on test set: {auc_test}")
+    print(f"Accuracy on test set: {acc_test:.4f}")
+    print(f"AUC on test set: {auc_test:.4f}")
 
 
 if __name__ == "__main__":
