@@ -126,3 +126,26 @@ class ThresholdLayer(nn.Module):
 
     def forward(self, x):
         return x - self.threshold
+
+
+class NormLayer(nn.Module):
+    def __init__(self, method, criteria_nr):
+        super().__init__()
+        self.method = method
+        self.criteria_nr = criteria_nr
+        self.thresholdLayer = ThresholdLayer()
+
+    def forward(self, x, *args):
+        self.out = self.method(x)
+
+        zero_input = (
+            torch.FloatTensor(self.criteria_nr)
+            .zero_()
+            .view(1, 1, -1)
+            .to(self.out.device)
+        )
+        self.zero = self.method(zero_input)
+        self.one = self.method(zero_input + 1)
+
+        self.out = (self.out - self.zero) / (self.one - self.zero)
+        return self.tresholdLayer(self.out)
