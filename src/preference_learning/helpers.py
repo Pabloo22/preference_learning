@@ -4,6 +4,7 @@ This code has beem provided by the lab instructor Krzysztof Martyn. Only minor
 changes have been made to make it consistent with the rest of the code. MIT License may not
 apply to this file.
 """
+import copy
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
@@ -13,7 +14,7 @@ from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
 from functools import partial
 import pathlib
-from typing import Union, Tuple, Callable
+from typing import Union, Tuple, Callable, Optional
 
 
 class NumpyDataset(Dataset):
@@ -74,20 +75,26 @@ def set_seed(seed: int = 42):
 
 def train(model: torch.nn.Module,
           train_dataloader: DataLoader,
-          test_dataloader: DataLoader,
-          path: Union[str, pathlib.Path],
+          test_dataloader: Optional[DataLoader] = None,
+          path: Optional[Union[str, pathlib.Path]] = None,
           lr: float = 0.01,
           epoch_nr: int = 200,
           loss_fn: Callable = regret,
           accuracy_fn: Callable = accuracy,
-          save_model: bool = True
-          ) -> Tuple[float, float, float, float]:
+          save_model: bool = True,
+          use_test_set: bool = True,
+          verbose: bool = True,
+          return_best_model: bool = False):
     """Trains a model and saves the best model to a file.
 
     The model is trained using the AdamW optimizer. The best model is saved to
     a file specified by the path argument. The model is saved if the test
     accuracy is greater than the previous best accuracy.
     """
+    if path is None and save_model:
+        raise ValueError("Path must be specified if save_model is True.")
+
+    best_model = 0
     optimizer = optim.AdamW(model.parameters(), lr=lr, betas=(0.9, 0.99))
     best_acc = 0.0
     best_auc = 0.0
@@ -103,30 +110,61 @@ def train(model: torch.nn.Module,
             optimizer.step()
 
         loss_train, acc_train, auc_train = evaluate_model(model, train_dataloader, loss_fn, accuracy_fn)
-        loss_test, acc_test, auc_test = evaluate_model(model, test_dataloader, loss_fn, accuracy_fn)
+        if use_test_set:
+            loss_test, acc_test, auc_test = evaluate_model(model, test_dataloader, loss_fn, accuracy_fn)
 
-        if acc_test > best_acc:
+        if use_test_set and acc_test > best_acc:
             best_acc = acc_test
             best_auc = auc_test
-            if save_model:
-                torch.save(
-                    {
-                        "epoch": epoch,
-                        "model_state_dict": model.state_dict(),
-                        "optimizer_state_dict": optimizer.state_dict(),
-                        "loss_train": loss_train,
-                        "loss_test": loss_test,
-                        "accuracy_train": acc_train,
-                        "accuracy_test": acc_test,
-                        "auc_train": auc_train,
-                        "auc_test": auc_test,
-                    },
-                    path,
-                )
+            best_model = copy.deepcopy(model)
+            if not save_model:
+                continue
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "loss_train": loss_train,
+                    "loss_test": loss_test,
+                    "accuracy_train": acc_train,
+                    "accuracy_test": acc_test,
+                    "auc_train": auc_train,
+                    "auc_test": auc_test,
+                },
+                path,
+            )
+            if verbose:
                 print("Saved model to", path)
                 print("Epoch: ", epoch)
 
-    return best_acc, acc_test, best_auc, auc_test
+        elif not use_test_set and acc_train > best_acc:
+            best_acc = acc_train
+            best_auc = auc_train
+            best_model = copy.deepcopy(model)
+            if not save_model:
+                continue
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "loss_train": loss_train,
+                    "accuracy_train": acc_train,
+                    "auc_train": auc_train,
+                },
+                path,
+            )
+            if verbose:
+                print("Saved model to", path)
+                print("Epoch: ", epoch)
+
+    if return_best_model:
+        return best_model
+
+    if use_test_set:
+        return best_acc, acc_test, best_auc, auc_test
+
+    return best_acc, best_auc
 
 
 def evaluate_model(model: torch.nn.Module,

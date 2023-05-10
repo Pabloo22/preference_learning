@@ -20,3 +20,4 @@ from .ann_uta import (
     ThresholdLayer,
     NormLayer
 )
+from .uta_wrapper import UtaWrapper
