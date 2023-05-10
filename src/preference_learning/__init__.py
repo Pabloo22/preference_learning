@@ -21,3 +21,5 @@ from .ann_uta import (
     NormLayer
 )
 from .uta_wrapper import UtaWrapper
+from .mlp_wrapper import MLPWrapper
+

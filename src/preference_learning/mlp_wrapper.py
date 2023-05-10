@@ -1,16 +1,15 @@
 import pandas as pd
 import torch
 
-from preference_learning import create_data_loader, train, accuracy, set_seed, Uta, NormLayer
-import functools
+from preference_learning import create_data_loader, train, set_seed
 
 
-class UtaWrapper:
-    """Scikit-learn wrapper for the Uta Model"""
+class MLPWrapper:
+    """Scikit-learn wrapper for the simple MLP model"""
 
-    def __init__(self, criteria_nr=6, hidden_nr=3, epochs=472, learning_rate=0.0420, seed=123):
-        self.criteria_nr = criteria_nr
-        self.hidden_nr = hidden_nr
+    def __init__(self, input_dim=6, hidden_dim=3, epochs=200, learning_rate=0.01, seed=123):
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.seed = seed
@@ -21,14 +20,17 @@ class UtaWrapper:
 
         # Create DataLoaders
         train_dataloader = create_data_loader(
-            X.to_numpy().reshape((-1, 1, self.criteria_nr)),
-            y.to_numpy())
+            X.to_numpy(),
+            y.to_numpy().reshape(-1,))
 
         # Create Model
-        uta = Uta(criteria_nr=self.criteria_nr, hidden_nr=self.hidden_nr)
-        model = NormLayer(uta, self.criteria_nr)
-
-        acc_fn = functools.partial(accuracy, threshold=0)
+        model = torch.nn.Sequential(
+            torch.nn.Linear(self.input_dim, self.hidden_dim),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self.hidden_dim, 1),
+            torch.nn.Sigmoid(),
+        )
+        loss_fn = torch.nn.BCELoss()
 
         # Train Model
         model = train(
@@ -37,7 +39,7 @@ class UtaWrapper:
                     model=model,
                     lr=self.learning_rate,
                     epoch_nr=self.epochs,
-                    accuracy_fn=acc_fn,
+                    loss_fn=loss_fn,
                     save_model=False,
                     use_test_set=False,
                     verbose=False,
@@ -49,10 +51,10 @@ class UtaWrapper:
         if self.model is None:
             raise RuntimeError("The model must be trained before making predictions.")
 
-        X_tensor = torch.tensor(X.to_numpy().reshape((-1, 1, self.criteria_nr)), dtype=torch.float32)
+        X_tensor = torch.tensor(X.to_numpy(), dtype=torch.float32)
         with torch.no_grad():
             preds = self.model(X_tensor)
-            preds_binary = (preds > 0).squeeze().numpy().astype(int)
+            preds_binary = (preds > 0.5).squeeze().numpy().astype(int)
 
         return preds_binary
 
@@ -60,10 +62,8 @@ class UtaWrapper:
         if self.model is None:
             raise RuntimeError("The model must be trained before making predictions.")
 
-        X_tensor = torch.tensor(X.to_numpy().reshape((-1, 1, self.criteria_nr)), dtype=torch.float32)
+        X_tensor = torch.tensor(X.to_numpy(), dtype=torch.float32)
         with torch.no_grad():
-            preds = self.model(X_tensor)
-            proba = torch.sigmoid(preds).squeeze().numpy()
+            proba = self.model(X_tensor).squeeze().numpy()
 
         return proba
-
