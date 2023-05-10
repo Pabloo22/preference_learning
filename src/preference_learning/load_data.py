@@ -2,40 +2,58 @@ import pandas as pd
 import dotenv
 import pathlib
 import os
+from typing import Tuple, Union
 
 from preference_learning import NumpyDataset
 
 
-def load_dataframe(mode: str = "raw") -> pd.DataFrame:
+TupleOfDataFrames = Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
+
+
+def load_dataframe(mode: str = "raw") -> Union[pd.DataFrame, TupleOfDataFrames]:
     """Returns a pandas dataframe with the car evaluation dataset."""
 
-    modes = ["raw", "processed"]
+    modes = ["raw", "processed", "split"]
     if mode not in modes:
         raise ValueError(f"Mode must be one of {modes}.")
 
     # Load data
     dotenv.load_dotenv()
     project_path = pathlib.Path(os.getenv("PROJECT_PATH"))
-    data_path = project_path / "data" / f"car_evaluation_{mode}.csv"
-    columns = ["buying", "maint", "doors", "persons", "lug_boot", "safety", "class"]
-    df = pd.read_csv(data_path, names=columns)
 
-    return df
+    if mode != "split":
+        data_path = project_path / "data" / f"car_evaluation_{mode}.csv"
+        columns = ["buying", "maint", "doors", "persons", "lug_boot", "safety", "class"]
+
+        df = pd.read_csv(data_path, names=columns)
+
+        return df
+
+    X_train_path = project_path / "data" / "X_train.csv"
+    X_test_path = project_path / "data" / "X_test.csv"
+    y_train_path = project_path / "data" / "y_train.csv"
+    y_test_path = project_path / "data" / "y_test.csv"
+
+    X_columns = ["buying", "maint", "doors", "persons", "lug_boot", "safety"]
+    y_columns = ["class"]
+
+    X_train = pd.read_csv(X_train_path, names=X_columns)
+    X_test = pd.read_csv(X_test_path, names=X_columns)
+    y_train = pd.read_csv(y_train_path, names=y_columns)
+    y_test = pd.read_csv(y_test_path, names=y_columns)
+
+    return X_train, X_test, y_train, y_test
 
 
-def load_dataset(mode: str = "raw") -> NumpyDataset:
+def load_dataset(mode: str = "raw") -> Union[NumpyDataset, Tuple[NumpyDataset, NumpyDataset]]:
     """Returns a torch dataset with the car evaluation dataset."""
+
+    if mode == "split":
+        X_train, X_test, y_train, y_test = load_dataframe(mode=mode)
+        return NumpyDataset(X_train.values, y_train.values), NumpyDataset(X_test.values, y_test.values)
 
     df = load_dataframe(mode=mode)
     X = df.drop(columns=["class"]).values
     y = df["class"].values
 
     return NumpyDataset(X, y)
-
-
-if __name__ == "__main__":
-    print(load_dataframe(mode="processed").head())
-    columns = ["buying", "maint", "doors", "persons", "lug_boot", "safety", "class"]
-    print("N classes:")
-    for col in columns:
-        print(f"{col}: {len(load_dataframe(mode='processed')[col].unique())}")

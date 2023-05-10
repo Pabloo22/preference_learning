@@ -28,7 +28,7 @@ def main():
     project_path = pathlib.Path(os.getenv("PROJECT_PATH"))
     path = project_path / "models" / "ann.pt"
 
-    neurons = [6, 6]
+    neurons = [6, 3]
     model = torch.nn.Sequential(
         torch.nn.Linear(neurons[0], neurons[1]),
         torch.nn.ReLU(),
