@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 from sklearn.model_selection import train_test_split
 from preference_learning import load_dataframe, MLPWrapper
 
@@ -36,6 +36,13 @@ def main():
     print("-" * 50)
     print(f"Accuracy on test set: {test_accuracy:.4f}")
     print(f"AUC on test set: {test_auc:.4f}")
+
+    # Calculate F1 score
+    f1_class_0 = f1_score(y_test, test_preds, pos_label=0)
+    f1_class_1 = f1_score(y_test, test_preds, pos_label=1)
+    print("-" * 50)
+    print(f"F1 score for class 0: {f1_class_0:.4f}")
+    print(f"F1 score for class 1: {f1_class_1:.4f}")
 
 
 if __name__ == "__main__":

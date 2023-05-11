@@ -14,7 +14,7 @@ class UtaWrapper:
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.seed = seed
-        self.model = None
+        self.model_ = None
 
     def fit(self, X: pd.DataFrame, y: pd.DataFrame):
         set_seed(self.seed)
@@ -43,33 +43,35 @@ class UtaWrapper:
                     verbose=False,
                     return_best_model=True,
                     )
-        self.model = model
+        self.model_ = model
 
     def load_model(self, path):
         uta = Uta(criteria_nr=self.criteria_nr, hidden_nr=self.hidden_nr)
         model = NormLayer(uta, self.criteria_nr)
         model.load_state_dict(torch.load(path)["model_state_dict"])
-        self.model = model
+        self.model_ = model
 
     def predict(self, X: pd.DataFrame):
-        if self.model is None:
+        if self.model_ is None:
             raise RuntimeError("The model must be trained before making predictions.")
 
         X_tensor = torch.tensor(X.to_numpy().reshape((-1, 1, self.criteria_nr)), dtype=torch.float32)
         with torch.no_grad():
-            preds = self.model(X_tensor)
+            preds = self.model_(X_tensor)
             preds_binary = (preds > 0).squeeze().numpy().astype(int)
 
         return preds_binary
 
     def predict_proba(self, X: pd.DataFrame):
-        if self.model is None:
+        if self.model_ is None:
             raise RuntimeError("The model must be trained before making predictions.")
 
         X_tensor = torch.tensor(X.to_numpy().reshape((-1, 1, self.criteria_nr)), dtype=torch.float32)
         with torch.no_grad():
-            preds = self.model(X_tensor)
+            preds = self.model_(X_tensor)
             proba = torch.sigmoid(preds).squeeze().numpy()
 
         return proba
 
+    def __call__(self, X: pd.DataFrame):
+        return self.predict(X)
