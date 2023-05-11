@@ -1,5 +1,6 @@
 import pandas as pd
 import torch
+import numpy as np
 
 from preference_learning import create_data_loader, train, set_seed
 
@@ -70,7 +71,7 @@ class MLPWrapper:
             preds = self.model_(X_tensor)
             preds_binary = (preds > 0.5).squeeze().numpy().astype(int)
 
-        return preds_binary
+        return preds_binary.reshape((-1, 1))
 
     def predict_proba(self, X: pd.DataFrame):
         if self.model_ is None:
@@ -78,9 +79,10 @@ class MLPWrapper:
 
         X_tensor = torch.tensor(X.to_numpy(), dtype=torch.float32)
         with torch.no_grad():
-            proba = self.model_(X_tensor).squeeze().numpy()
+            proba = self.model_(X_tensor).squeeze().numpy().reshape((-1, 1))
 
-        return proba
+        neg_proba = 1 - proba
+        return np.concatenate((neg_proba, proba), axis=1)
 
     def __call__(self, X: pd.DataFrame):
         return self.predict_proba(X)

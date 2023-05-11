@@ -2,8 +2,6 @@ from explainerdashboard import ClassifierExplainer, ExplainerDashboard
 import pathlib
 import dotenv
 import os
-import torch
-import skorch
 
 from preference_learning import load_dataframe, UtaWrapper
 
