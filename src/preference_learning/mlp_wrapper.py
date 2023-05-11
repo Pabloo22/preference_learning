@@ -47,6 +47,20 @@ class MLPWrapper:
                     )
         self.model = model
 
+    def load_model(self, path):
+        saved_model = torch.load(path)
+
+        # Create a new instance of the model architecture
+        self.model = torch.nn.Sequential(
+            torch.nn.Linear(self.input_dim, self.hidden_dim),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self.hidden_dim, 1),
+            torch.nn.Sigmoid(),
+        )
+
+        # Copy the weights from the saved model to the new instance
+        self.model.load_state_dict(saved_model["model_state_dict"])
+
     def predict(self, X: pd.DataFrame):
         if self.model is None:
             raise RuntimeError("The model must be trained before making predictions.")

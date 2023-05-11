@@ -53,7 +53,7 @@ def main():
     print(f"Validation accuracy: {acc_test:.4f}")
     print(f"Validation AUC: {auc_test:.4f}")
 
-    # Load the saved model's state_dict
+    # Load the saved model
     saved_model = torch.load(path)
 
     # Create a new instance of the model architecture
