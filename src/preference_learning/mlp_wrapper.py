@@ -13,7 +13,7 @@ class MLPWrapper:
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.seed = seed
-        self.model = None
+        self.model_ = None
 
     def fit(self, X: pd.DataFrame, y: pd.DataFrame):
         set_seed(self.seed)
@@ -45,13 +45,13 @@ class MLPWrapper:
                     verbose=False,
                     return_best_model=True,
                     )
-        self.model = model
+        self.model_ = model
 
     def load_model(self, path):
         saved_model = torch.load(path)
 
         # Create a new instance of the model architecture
-        self.model = torch.nn.Sequential(
+        self.model_ = torch.nn.Sequential(
             torch.nn.Linear(self.input_dim, self.hidden_dim),
             torch.nn.ReLU(),
             torch.nn.Linear(self.hidden_dim, 1),
@@ -59,25 +59,28 @@ class MLPWrapper:
         )
 
         # Copy the weights from the saved model to the new instance
-        self.model.load_state_dict(saved_model["model_state_dict"])
+        self.model_.load_state_dict(saved_model["model_state_dict"])
 
     def predict(self, X: pd.DataFrame):
-        if self.model is None:
+        if self.model_ is None:
             raise RuntimeError("The model must be trained before making predictions.")
 
         X_tensor = torch.tensor(X.to_numpy(), dtype=torch.float32)
         with torch.no_grad():
-            preds = self.model(X_tensor)
+            preds = self.model_(X_tensor)
             preds_binary = (preds > 0.5).squeeze().numpy().astype(int)
 
         return preds_binary
 
     def predict_proba(self, X: pd.DataFrame):
-        if self.model is None:
+        if self.model_ is None:
             raise RuntimeError("The model must be trained before making predictions.")
 
         X_tensor = torch.tensor(X.to_numpy(), dtype=torch.float32)
         with torch.no_grad():
-            proba = self.model(X_tensor).squeeze().numpy()
+            proba = self.model_(X_tensor).squeeze().numpy()
 
         return proba
+
+    def __call__(self, X: pd.DataFrame):
+        return self.predict_proba(X)
