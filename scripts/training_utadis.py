@@ -1,4 +1,5 @@
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 import dotenv
 import pathlib
 import os
@@ -21,16 +22,16 @@ MODEL_PATH = pathlib.Path(os.getenv("PROJECT_PATH")) / "models" / MODEL_FILENAME
 CRITERIA_NR = 6
 
 # Hyperparameters
-HIDDEN_NR = 30
-EPOCHS = 200
-LEARNING_RATE = 0.01
+HIDDEN_NR = 35
+EPOCHS = 453
+LEARNING_RATE = 0.020335013631017522
 
 
 def main():
     set_seed(123)
 
     # Load data
-    X_train, X_test, y_train, y_test = load_dataframe(mode="split")
+    X_train, X_test, y_train, y_test = load_dataframe(mode="split", all_gain=True)
 
     # Create Validation Set
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)

@@ -11,9 +11,9 @@ class UtaWrapper:
 
     def __init__(self,
                  criteria_nr=6,
-                 hidden_nr=3,
-                 epochs=472,
-                 learning_rate=0.0420,
+                 hidden_nr=35,
+                 epochs=400,
+                 learning_rate=0.020335013631017522,
                  seed=123):
         self.criteria_nr = criteria_nr
         self.hidden_nr = hidden_nr

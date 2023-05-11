@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 from sklearn.model_selection import train_test_split
 import dotenv
 import pathlib
@@ -9,7 +9,7 @@ from preference_learning import load_dataframe, UtaWrapper
 
 def main():
     # Load data
-    X_train, X_test, y_train, y_test = load_dataframe(mode="split")
+    X_train, X_test, y_train, y_test = load_dataframe(mode="split", all_gain=True)
 
     # Create Validation Set
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
@@ -20,7 +20,7 @@ def main():
 
     # Make predictions on the validation set
     val_preds = uta_wrapper.predict(X_val)
-    val_probs = uta_wrapper.predict_proba(X_val)
+    val_probs = uta_wrapper.predict_proba(X_val)[:, 1]
 
     # Calculate accuracy and AUC
     val_accuracy = accuracy_score(y_val, val_preds)
@@ -31,7 +31,7 @@ def main():
 
     # Make predictions on the test set
     test_preds = uta_wrapper.predict(X_test)
-    test_probs = uta_wrapper.predict_proba(X_test)
+    test_probs = uta_wrapper.predict_proba(X_test)[:, 1]
 
     # Calculate accuracy and AUC
     test_accuracy = accuracy_score(y_test, test_preds)
@@ -40,6 +40,13 @@ def main():
     print("-" * 50)
     print(f"Accuracy on test set: {test_accuracy:.4f}")
     print(f"AUC on test set: {test_auc:.4f}")
+
+    # Calculate F1 score
+    f1_class_0 = f1_score(y_test, test_preds, pos_label=0)
+    f1_class_1 = f1_score(y_test, test_preds, pos_label=1)
+    print("-" * 50)
+    print(f"F1 score for class 0: {f1_class_0:.4f}")
+    print(f"F1 score for class 1: {f1_class_1:.4f}")
 
     # Save the model
     dotenv.load_dotenv()

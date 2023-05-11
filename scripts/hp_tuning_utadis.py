@@ -22,7 +22,7 @@ CRITERIA_NR = 6
 set_seed(123)
 
 # Load data
-X_train, X_test, y_train, y_test = load_dataframe(mode="split")
+X_train, X_test, y_train, y_test = load_dataframe(mode="split", all_gain=True)
 
 # Create Validation Set
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
@@ -40,7 +40,7 @@ def main(trial):
     set_seed(123)
 
     # Hyperparameters
-    HIDDEN_NR = trial.suggest_int("hidden_nr", 10, 100)
+    HIDDEN_NR = trial.suggest_int("hidden_nr", 2, 50)
     EPOCHS = trial.suggest_int("epochs", 50, 500)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
 
@@ -67,7 +67,7 @@ def main(trial):
 
 if __name__ == "__main__":
     study = optuna.create_study(direction="maximize")
-    study.optimize(main, n_trials=50)
+    study.optimize(main, n_trials=10)
 
     print("Best trial:")
     trial_ = study.best_trial
