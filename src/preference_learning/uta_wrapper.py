@@ -45,6 +45,12 @@ class UtaWrapper:
                     )
         self.model = model
 
+    def load_model(self, path):
+        uta = Uta(criteria_nr=self.criteria_nr, hidden_nr=self.hidden_nr)
+        model = NormLayer(uta, self.criteria_nr)
+        model.load_state_dict(torch.load(path)["model_state_dict"])
+        self.model = model
+
     def predict(self, X: pd.DataFrame):
         if self.model is None:
             raise RuntimeError("The model must be trained before making predictions.")
