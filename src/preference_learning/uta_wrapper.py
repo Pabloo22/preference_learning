@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import torch
 
@@ -8,7 +9,12 @@ import functools
 class UtaWrapper:
     """Scikit-learn wrapper for the Uta Model"""
 
-    def __init__(self, criteria_nr=6, hidden_nr=3, epochs=472, learning_rate=0.0420, seed=123):
+    def __init__(self,
+                 criteria_nr=6,
+                 hidden_nr=3,
+                 epochs=472,
+                 learning_rate=0.0420,
+                 seed=123):
         self.criteria_nr = criteria_nr
         self.hidden_nr = hidden_nr
         self.epochs = epochs
@@ -48,8 +54,14 @@ class UtaWrapper:
     def load_model(self, path):
         uta = Uta(criteria_nr=self.criteria_nr, hidden_nr=self.hidden_nr)
         model = NormLayer(uta, self.criteria_nr)
-        model.load_state_dict(torch.load(path)["model_state_dict"])
+        saved_model = torch.load(path)
+        model.load_state_dict(saved_model["model_state_dict"])
         self.model_ = model
+
+    def save_model(self, path):
+        torch.save({
+            "model_state_dict": self.model_.state_dict(),
+            }, path)
 
     def predict(self, X: pd.DataFrame):
         if self.model_ is None:
@@ -60,7 +72,7 @@ class UtaWrapper:
             preds = self.model_(X_tensor)
             preds_binary = (preds > 0).squeeze().numpy().astype(int)
 
-        return preds_binary
+        return preds_binary.reshape((-1, 1))
 
     def predict_proba(self, X: pd.DataFrame):
         if self.model_ is None:
@@ -70,6 +82,10 @@ class UtaWrapper:
         with torch.no_grad():
             preds = self.model_(X_tensor)
             proba = torch.sigmoid(preds).squeeze().numpy()
+
+        # Add a column for the negative class
+        proba_neg = 1 - proba
+        proba = np.concatenate((proba_neg.reshape((-1, 1)), proba.reshape((-1, 1))), axis=1)
 
         return proba
 

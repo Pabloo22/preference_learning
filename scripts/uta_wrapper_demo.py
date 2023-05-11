@@ -1,5 +1,9 @@
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import train_test_split
+import dotenv
+import pathlib
+import os
+
 from preference_learning import load_dataframe, UtaWrapper
 
 
@@ -36,6 +40,13 @@ def main():
     print("-" * 50)
     print(f"Accuracy on test set: {test_accuracy:.4f}")
     print(f"AUC on test set: {test_auc:.4f}")
+
+    # Save the model
+    dotenv.load_dotenv()
+    path = pathlib.Path(os.getenv("PROJECT_PATH")) / "models" / "ann_utadis.pt"
+
+    uta_wrapper.save_model(path)
+    print(f"Model saved to {path}")
 
 
 if __name__ == "__main__":
