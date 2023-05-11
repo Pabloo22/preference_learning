@@ -9,3 +9,4 @@ sklearn==0.0.post4
 scikit-learn==1.2.2
 tqdm==4.64.1
 torch==2.0.0
+explainerdashboard==0.4.2.2
